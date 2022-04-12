@@ -1,28 +1,29 @@
-import json
 import re
+from pathlib import Path
 
 import numpy as np
-import praw
+from praw import Reddit
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import GaussianNB
 from tensorflow import keras
 
+from src.reddit_analysis.io.loaders import load_json
 
-def get_reddit_object(json_file="reddit_config.json"):
+
+def get_reddit_object(path_json: Path) -> Reddit:
     """
     Fetches details and returns reddit object.
 
     Parameters
     ----------
-    json_file : str, filename of details (json)
+    path_json : Path, filename of details (json)
 
     Returns
     -------
     reddit : reddit object
     """
-    with open(json_file) as f:
-        data = json.load(f)
-    reddit = praw.Reddit(
+    data = load_json(path_json)
+    reddit = Reddit(
         client_id=data["client_id"],
         client_secret=data["client_secret"],
         user_agent=data["user_agent"],
@@ -32,12 +33,13 @@ def get_reddit_object(json_file="reddit_config.json"):
     return reddit
 
 
-def get_top_sub_headlines(sub, limit=1000):
+def get_top_sub_headlines(reddit, sub, limit=1000):
     """
     Get subreddit top submission titles
 
     Parameters
     ----------
+    reddit : Reddit object
     sub : str, subreddit name
     limit : int, top post limit
 
@@ -46,7 +48,7 @@ def get_top_sub_headlines(sub, limit=1000):
     headlines : set, a set of top headlines from subreddit
     """
     headlines = []
-    for submission in get_reddit_object().subreddit(sub).top(limit=limit):
+    for submission in reddit.subreddit(sub).top(limit=limit):
         headlines.append(submission.title)
     return headlines
 
@@ -58,7 +60,7 @@ def preprocess_text(text):
 
 
 class SentimentModel:
-    def __init__(self, subs, limit=1000, val_ratio=0.1):
+    def __init__(self, reddit, subs, limit=1000, val_ratio=0.1):
         self.subs = subs
 
         val_limit = int(limit * val_ratio)
@@ -74,7 +76,7 @@ class SentimentModel:
         self.headline_val = []
 
         for i, sub in enumerate(self.subs):
-            headlines = get_top_sub_headlines(sub, limit=limit)
+            headlines = get_top_sub_headlines(reddit, sub, limit=limit)
 
             self.y_train[i * train_limit : (i + 1) * train_limit, i] = 1
             self.y_val[i * val_limit : (i + 1) * val_limit, i] = 1
