@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import GaussianNB
 from tensorflow import keras
 
-from src.reddit_analysis.io.loaders import load_json
+from reddit_analysis.io.loaders import load_json
 
 
 def get_reddit_object(path_json: Path) -> Reddit:

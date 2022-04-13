@@ -18,6 +18,5 @@ class TestLoadJson:
             assert load_json(Path("foo.json"))
 
     def test_invalid_file(self):
-        path_json = Path(__file__)
         with pytest.raises(JSONDecodeError):
-            assert load_json(path_json)
+            assert load_json(Path(__file__))
