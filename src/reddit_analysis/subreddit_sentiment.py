@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 
@@ -6,8 +7,6 @@ from praw import Reddit
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import GaussianNB
 from tensorflow import keras
-
-from reddit_analysis.io.loaders import load_json
 
 
 def get_reddit_object(path_json: Path) -> Reddit:
@@ -22,7 +21,8 @@ def get_reddit_object(path_json: Path) -> Reddit:
     -------
     reddit : reddit object
     """
-    data = load_json(path_json)
+    with open(path_json) as f:
+        data = json.load(f)
     reddit = Reddit(
         client_id=data["client_id"],
         client_secret=data["client_secret"],
@@ -33,7 +33,7 @@ def get_reddit_object(path_json: Path) -> Reddit:
     return reddit
 
 
-def get_top_sub_headlines(reddit, sub, limit=1000):
+def get_top_sub_headlines(reddit: Reddit, sub: str, limit=1000):
     """
     Get subreddit top submission titles
 
